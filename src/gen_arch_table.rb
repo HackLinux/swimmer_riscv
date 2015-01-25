@@ -190,6 +190,10 @@ inst_func_fp.puts("#pragma once")
 inst_func_fp.puts("")
 inst_func_fp.puts("")
 
+inst_func_fp.puts("#include <stdint.h>")
+inst_func_fp.puts("#include \"./inst_list.h\"\n")
+inst_func_fp.puts("#include \"./dec_utils.h\"\n\n\n")
+
 $arch_table.each {|inst_info|
-  inst_func_fp.printf("void RISCV_Inst_%s (uint32_t inst_hex);\n", inst_info[DEC::INST_NAME]);
+  inst_func_fp.printf("void RISCV_%s (uint32_t inst_hex, riscv_env env);\n", inst_info[DEC::INST_NAME]);
 }

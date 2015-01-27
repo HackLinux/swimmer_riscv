@@ -20,7 +20,11 @@ CFLAGS = -Wall -O3 -I../include -g
 CC = gcc
 AR = ar
 
-all: $(TARGET)
+all: inst_call.c $(TARGET)
+
+inst_call.c:
+	./gen_arch_table.rb
+
 
 $(OBJ_DIR)%.o :: %.c
 	gcc $(CFLAGS) -o $@ -c $< -DREVISION=\"$(REVISION)\" -DVERSION=\"$(VERSION)\"
@@ -32,4 +36,4 @@ $(OBJ_DIR) :
 	mkdir -p $(OBJ_DIR)
 
 clean :
-	rm -f $(TARGET) $(OBJS)
+	rm -f $(TARGET) $(OBJS) inst_call.c inst_decoder.c inst_decoder.h inst_list.h inst_riscv.h

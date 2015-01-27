@@ -119,13 +119,20 @@ $arch_table.each_with_index {|inst_info, index|
 ##
 ##=== generate decode table ===
 ##
-inst_decoder_fp = File.open('inst_decoder.c', 'w')
+inst_decoder_c_fp = File.open('inst_decoder.c', 'w')
+inst_decoder_h_fp = File.open('inst_decoder.h', 'w')
 
-gen_header(inst_decoder_fp) # making header
+gen_header(inst_decoder_c_fp) # making header
+gen_header(inst_decoder_h_fp) # making header
 
-inst_decoder_fp.puts("#include <stdint.h>")
-inst_decoder_fp.puts("#include \"./inst_list.h\"\n\n\n")
-inst_decoder_fp.puts("#include \"./dec_utils.h\"\n\n\n")
+inst_decoder_c_fp.puts("#include <stdint.h>")
+inst_decoder_c_fp.puts("#include \"./inst_list.h\"")
+inst_decoder_c_fp.puts("#include \"./inst_decoder.h\"")
+inst_decoder_c_fp.puts("#include \"./dec_utils.h\"\n\n\n")
+
+inst_decoder_h_fp.puts("#include <stdint.h>")
+inst_decoder_h_fp.puts("#include \"./inst_list.h\"")
+inst_decoder_h_fp.puts("#include \"./dec_utils.h\"\n\n\n")
 
 $arch_table.each {|inst_info| temp_arch_table.push(inst_info) }
 
@@ -134,8 +141,11 @@ $arch_table.each {|inst_info| temp_arch_table.push(inst_info) }
 until temp_arch_table.size == 0
   target_func_str = temp_arch_table[0][DEC::FUNC_STR]
 
-  inst_decoder_fp.printf("uint32_t %s (uint32_t inst_hex)\n", target_func_str)
-  inst_decoder_fp.puts("{\n")
+  # declare function
+  inst_decoder_c_fp.printf("uint32_t %s (uint32_t inst_hex)\n", target_func_str)
+  inst_decoder_c_fp.puts("{\n")
+  # declare function headers
+  inst_decoder_h_fp.printf("uint32_t %s (uint32_t inst_hex);\n", target_func_str)
 
   temp_arch_table.each_with_index {|inst_info, index|
     if inst_info[DEC::FUNC_STR] == target_func_str then
@@ -144,8 +154,8 @@ until temp_arch_table.size == 0
       dec       = inst_info[key_idx]
 
       if key_table.size == 1 then
-        inst_decoder_fp.printf("    if (Extract%sField (inst_hex) == 0x%02x)\n", key_table[0], inst_info[key_idx].to_i(2))
-        inst_decoder_fp.printf("        return %s;\n", inst_info[DEC::INST_NAME])
+        inst_decoder_c_fp.printf("    if (Extract%sField (inst_hex) == 0x%02x)\n", key_table[0], inst_info[key_idx].to_i(2))
+        inst_decoder_c_fp.printf("        return %s;\n", inst_info[DEC::INST_NAME])
       else # need to more decode
         temp_arch_table[index][DEC::CURR_DEC] = dec
       end
@@ -164,8 +174,8 @@ until temp_arch_table.size == 0
       if key_table.size != 1 then
         if not dec_table.include?(func_str) then
           dec_table.push (func_str)
-          inst_decoder_fp.printf("    if (Extract%sField (inst_hex) == 0x%02x)\n", key_table[0], inst_info[key_idx].to_i(2))
-          inst_decoder_fp.printf("        return %s (inst_hex);\n", func_str)
+          inst_decoder_c_fp.printf("    if (Extract%sField (inst_hex) == 0x%02x)\n", key_table[0], inst_info[key_idx].to_i(2))
+          inst_decoder_c_fp.printf("        return %s (inst_hex);\n", func_str)
         end
         temp_arch_table[index][DEC::FUNC_STR] = func_str
         temp_arch_table[index][ARCH::KEY_TABLE].delete_at(0)
@@ -173,10 +183,12 @@ until temp_arch_table.size == 0
     end
   }
 
+  inst_decoder_c_fp.printf("    return -1;\n");
+
   # finally decode-finished entry is deleted.
   temp_arch_table.delete_if {|inst_info| inst_info[DEC::FUNC_STR] == target_func_str }
 
-  inst_decoder_fp.puts("}\n\n\n")
+  inst_decoder_c_fp.puts("}\n\n\n")
 end  # temp_arch_table.size == 0
 
 
@@ -191,9 +203,35 @@ inst_func_fp.puts("")
 inst_func_fp.puts("")
 
 inst_func_fp.puts("#include <stdint.h>")
+inst_func_fp.puts("#include \"./env.h\"\n")
 inst_func_fp.puts("#include \"./inst_list.h\"\n")
 inst_func_fp.puts("#include \"./dec_utils.h\"\n\n\n")
 
 $arch_table.each {|inst_info|
-  inst_func_fp.printf("void RISCV_%s (uint32_t inst_hex, riscv_env env);\n", inst_info[DEC::INST_NAME]);
+  inst_func_fp.printf("void RISCV_%s (uint32_t inst_hex, riscvEnv env);\n", inst_info[DEC::INST_NAME]);
 }
+
+
+##
+##=== generate function call array ===
+##
+inst_array_fp = File.open('inst_call.c', 'w')
+gen_header(inst_array_fp) # making header
+inst_array_fp.puts("")
+inst_array_fp.puts("")
+
+inst_array_fp.puts("#include <stdint.h>")
+inst_array_fp.puts("#include \"./env.h\"\n")
+inst_array_fp.puts("#include \"./inst_riscv.h\"\n")
+
+inst_array_fp.puts("void (* const inst_exec_func[])(uint32_t, riscvEnv) = {\n");
+$arch_table.each_with_index {|inst_info, index|
+  inst_array_fp.printf("    RISCV_%s", inst_info[DEC::INST_NAME]);
+  if (index == $arch_table.size-1) then
+    inst_array_fp.puts("\n};");
+  else
+    inst_array_fp.puts(",\n");
+  end
+}
+
+inst_array_fp.close()

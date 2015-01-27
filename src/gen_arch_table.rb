@@ -58,6 +58,8 @@ def gen_header(fp)
   fp.puts(" *     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.")
   fp.puts(" */")
   fp.puts("")
+  fp.puts("/* CAUTION! THIS SOURCE CODE IS GENERATED AUTOMATICALLY. DON'T MODIFY BY HAND. */")
+  fp.puts("")
   fp.puts("")
 end
 

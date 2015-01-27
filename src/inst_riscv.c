@@ -189,10 +189,7 @@ void RISCV_INST_LB (uint32_t inst_hex, riscvEnv env)
     Word_t  imm      = ExtractBitField (inst_hex, 31, 20);
     Addr_t  mem_addr = rs1_val + imm;
 
-    Word_t res       = LoadMemory (mem_addr, Size_Byte, env) & 0x000000ff;
-    if (((res >> 7) & 0x01) == 1) {
-        res |= 0xffffff00;
-    }
+    Word_t res       = ExtendSign (LoadMemory (mem_addr, Size_Byte, env) & 0x000000ff, 7);
     GRegWrite (rd_addr, res, env);
 }
 
@@ -206,10 +203,7 @@ void RISCV_INST_LH (uint32_t inst_hex, riscvEnv env)
     Word_t  imm      = ExtractBitField (inst_hex, 31, 20);
     Addr_t  mem_addr = rs1_val + imm;
 
-    Word_t res       = LoadMemory (mem_addr, Size_HWord, env) & 0x0000ffff;
-    if (((res >> 15) & 0x01) == 1) {
-        res |= 0xffff0000;
-    }
+    Word_t res       = ExtendSign (LoadMemory (mem_addr, Size_HWord, env) & 0x0000ffff, 15);
     GRegWrite (rd_addr, res, env);
 }
 
@@ -320,11 +314,8 @@ void RISCV_INST_SLTI (uint32_t inst_hex, riscvEnv env)
     RegAddr_t rd_addr  = ExtractRDField (inst_hex);
 
     Word_t  rs1_val  = GRegRead (rs1_addr, env);
-    Word_t  imm      = ExtractBitField (inst_hex, 31, 20);
-    if (((imm >> 11) & 0x01) == 1) {
-        imm |= 0xfffff000;
-    }
-    Word_t  res = (rs1_val < imm) ? 0x1 : 0x0;
+    Word_t  imm      = ExtendSign (ExtractBitField (inst_hex, 31, 20), 11);
+    Word_t  res      = (rs1_val < imm) ? 0x1 : 0x0;
     GRegWrite (rd_addr, res, env);
 }
 

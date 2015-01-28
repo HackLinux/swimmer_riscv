@@ -407,7 +407,7 @@ void AdvanceStep (riscvEnv env)
  * \param env  environment to be load
  * \return     max memory address to be loaded
  */
-uint32_t load_srec (FILE *fp, riscvEnv env)
+uint32_t LoadSrec (FILE *fp, riscvEnv env)
 {
     char buff[256 + 1];
     uint32_t i;

@@ -30,7 +30,6 @@
 #include "./swimmer_main.h"
 #include "./simulation.h"
 #include "./env.h"
-#include "./load.h"
 
 int main (int argc, char *argv[])
 {
@@ -94,7 +93,7 @@ int main (int argc, char *argv[])
     riscvEnv env = CreateNewRISCVEnv (debugfp);
     env->max_cycle = max_cycle;  // set maximum cycle
 
-    load_srec (hexfp, env);
+    LoadSrec (hexfp, env);
 
     // simulation start
     int count;

@@ -1,6 +1,6 @@
 TARGET_DIR = ../
 TARGET = $(TARGET_DIR)swimmer_riscv
-TARGET_LIB = sim_main.a
+TARGET_LIB = libsim_riscv.a
 OBJ_DIR = ./objs/
 
 LIB_SRCS = env.c \
@@ -26,22 +26,19 @@ CFLAGS = -Wall -O3 -I../include -g
 CC = gcc
 AR = ar
 
-all: inst_call.c $(TARGET)
+all: $(OBJ_DIR) $(TARGET)
 
-$(TARGET): $(OBJS) $(TARGET_LIB)
-	gcc $(CFLAGS) -o $@ $^ -DREVISION=\"$(REVISION)\" -DVERSION=\"$(VERSION)\"
-
-inst_call.c:
-	./gen_arch_table.rb
+$(TARGET): $(TARGET_LIB) $(OBJS)
+	gcc -static $(CFLAGS) -o $@ $(OBJS) -lsim_riscv -L. -DREVISION=\"$(REVISION)\" -DVERSION=\"$(VERSION)\"
 
 $(OBJ_DIR)%.o :: %.c
 	gcc $(CFLAGS) -o $@ -c $< -DREVISION=\"$(REVISION)\" -DVERSION=\"$(VERSION)\"
 
 $(TARGET_LIB) : $(OBJ_DIR) $(LIB_OBJS)
-	$(AR) rcs sim_main.a $(LIB_OBJS)
+	$(AR) r $(TARGET_LIB) $(LIB_OBJS)
 
 $(OBJ_DIR) :
 	mkdir -p $(OBJ_DIR)
 
 clean :
-	rm -f $(TARGET_LIB) $(TARGET) $(LIB_OBJS) inst_call.c inst_decoder.c inst_decoder.h inst_list.h inst_riscv.h
+	rm -rf $(OBJ_DIR) $(TARGET_LIB) $(TARGET) $(LIB_OBJS) inst_call.c inst_decoder.c inst_decoder.h inst_list.h inst_riscv.h

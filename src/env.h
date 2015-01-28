@@ -109,7 +109,7 @@ Addr_t   PCRead (riscvEnv);
 Word_t   LoadMemory  (Addr_t, Size_t, riscvEnv);
 void     StoreMemory (Addr_t, Word_t, Size_t, riscvEnv);
 void     AdvanceStep (riscvEnv);
-uint32_t load_srec (FILE *, riscvEnv);
+uint32_t LoadSrec (FILE *, riscvEnv);
 
 
 /*!

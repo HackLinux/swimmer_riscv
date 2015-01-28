@@ -40,6 +40,8 @@ static void    StoreMemByte  (Addr_t, Byte_t , riscvEnv);
 static void    StoreMemHWord (Addr_t, HWord_t, riscvEnv);
 static void    StoreMemWord  (Addr_t, Word_t , riscvEnv);
 
+static uint32_t htoi (uint8_t);
+
 
 void *checked_malloc (size_t size)
 {
@@ -174,10 +176,12 @@ Word_t SearchMemTable (MemTable table, Word_t addr)
  * create new RISCV simulation environment
  * \return RiscvEnv structure (not formatted)
  */
-riscvEnv CreateNewRISCVEnv (void)
+riscvEnv CreateNewRISCVEnv (FILE *fp)
 {
     riscvEnv env = (riscvEnv) checked_malloc (sizeof (*env));
     env->trace   = (traceInfo) checked_malloc (sizeof (*(env->trace)));
+    env->memory  = CreateMemTable ();
+    env->dbgfp   = fp;
 
     return env;
 }
@@ -394,4 +398,88 @@ void StoreMemory (Addr_t addr, Word_t data, Size_t size, riscvEnv env)
 void AdvanceStep (riscvEnv env)
 {
     PCWrite (PCRead (env) + 4, env);
+}
+
+
+/*!
+ * load s-rec motrola format
+ * \param fp   file pointer to be loaded srec
+ * \param env  environment to be load
+ * \return     max memory address to be loaded
+ */
+uint32_t load_srec (FILE *fp, riscvEnv env)
+{
+    char buff[256 + 1];
+    uint32_t i;
+    char load_data = false;
+    uint32_t pc_max = 0x00000000;
+
+    while (fgets (buff, 256, fp) != NULL) {
+        if (buff[0] == 'S') { // valid s-record
+            uint8_t type = buff[1] - 0x30;
+            uint8_t byte_length = (htoi (buff[2]) << 4) + htoi (buff[3]);
+            uint32_t address = 0;
+            uint8_t addr_len;   // length of address format
+            switch (type) {
+            case 0 : // Block header
+                addr_len = 4; load_data = false; break;  // 2 byte
+            case 1 : // Data sequence
+                addr_len = 4; load_data = true;  break;  // 2 byte
+            case 2 : // Data sequence
+                addr_len = 6; load_data = true;  break;  // 3 byte
+            case 3 : // Data sequence
+                addr_len = 8; load_data = true;  break;  // 4 byte
+            case 5 : // Record count
+                addr_len = 4; load_data = false; break;  // 2 byte
+            case 7 : // End of block
+                addr_len = 8; load_data = false; break;  // 4 byte
+            case 8 : // End of block
+                addr_len = 6; load_data = false; break;  // 3 byte
+            case 9 : // End of block
+                addr_len = 4; load_data = false; break;  // 2 byte
+            default : // illegal type
+                addr_len = 0;
+                load_data = false;
+                fprintf (stderr, "load_srec : type is illegal %d\n", type);
+                break;
+            }
+
+            if (load_data == true) {
+                //** read address of S-Rec
+                int index; // head of address
+                const int addr_head = 4;
+                for (index = 0; index < addr_len; index++) {
+                    address = (address << 4) + htoi (buff[index + addr_head]);
+                }
+
+                //** read word
+                int data_head = index + addr_head;   // head of data is tail of address information
+                for (i = 0; i < byte_length - addr_len / 2 - 1; i++) {
+                    uint8_t data = (htoi (buff[i * 2 + data_head]) << 4) + htoi (buff[i * 2 + 1 + data_head]);
+                    StoreMemory (address, data, Size_Byte, env);
+                    address++;
+                }
+                if (pc_max < address) {
+                    pc_max = address;
+                }
+            }
+        }
+    }
+
+    return pc_max;
+}
+
+
+static uint32_t htoi (uint8_t h)
+{
+
+    if (h >= '0' && h <= '9') {
+        return h - '0';  // number
+    } else if (h >= 'A' && h <= 'F') {
+        return h - 'A' + 10; // 0xA - 0xF
+    } else if (h >= 'a' && h <= 'f') {
+        return h - 'a' + 10;
+    } else {
+        return -1;
+    }
 }

@@ -237,3 +237,26 @@ $arch_table.each_with_index {|inst_info, index|
 }
 
 inst_array_fp.close()
+
+
+##
+##=== generate instruction print table ===
+##
+inst_print_h_fp = File.open('./inst_print.h', 'w')
+
+gen_header(inst_print_h_fp) # making header
+
+inst_print_h_fp.puts("#pragma once")
+inst_print_h_fp.puts("")
+inst_print_h_fp.puts("")
+inst_print_h_fp.puts("#include <stdint.h>")
+inst_print_h_fp.puts("#include \"./inst_list.h\"")
+inst_print_h_fp.puts("#include \"./dec_utils.h\"\n\n\n")
+
+inst_print_h_fp.printf("char inst_strings[%d] = {\n", $arch_table.size + 1);
+$arch_table.each_with_index {|inst_info, index|
+  inst_print_h_fp.printf("    \"%s\",\n", inst_info[ARCH::NAME]);
+}
+inst_print_h_fp.puts("    NULL};\n");
+
+inst_print_h_fp.close()

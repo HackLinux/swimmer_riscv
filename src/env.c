@@ -128,6 +128,7 @@ uint32_t ExtendSign (uint32_t data, uint32_t msb)
  */
 static binder Binder (void *key, void *value, binder next, void *prevtop)
 {
+
     binder b = (binder) checked_malloc (sizeof (*b));
     b->key = key;
     b->value = value;
@@ -168,8 +169,9 @@ void *TAB_look (TAB_table t, void *key)
 
     index = ((unsigned)key) % TABSIZE;
     for (b = t->table[index]; b; b = NEXT (b))  {
-        if  (b->key == key)
+        if  (b->key == key) {
             return b->value;
+        }
     }
     return NULL;
 }
@@ -193,7 +195,7 @@ MemTable CreateMemTable (void)
  * \param key     key used in search
  * \param info    info structure to be inserted
  */
-void InsertMemTable (MemTable table, Addr_t addr, Word_t info)
+void InsertMemTable (MemTable table, Addr_t addr, Byte_t info)
 {
     TAB_enter ((TAB_table)table, (void *)addr, (void *)info);
     return;
@@ -205,9 +207,9 @@ void InsertMemTable (MemTable table, Addr_t addr, Word_t info)
  * \param pc     target pc address
  * \return       info structure to be searched
  */
-Word_t SearchMemTable (MemTable table, Word_t addr)
+Byte_t SearchMemTable (MemTable table, Addr_t addr)
 {
-    return (Word_t) TAB_look (table, (void *)addr);
+    return TAB_look (table, (void *)addr);
 }
 
 
@@ -285,7 +287,8 @@ Addr_t PCRead (riscvEnv env)
  */
 static Byte_t LoadMemByte (Addr_t addr, riscvEnv env)
 {
-    return SearchMemTable (env->memory, addr);
+    Byte_t mem = SearchMemTable (env->memory, addr);
+    return mem;
 }
 
 

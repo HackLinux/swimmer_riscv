@@ -94,8 +94,8 @@ void     *TAB_look(TAB_table t, void *key);
  * === Memory Operations ===
  */
 MemTable CreateMemTable (void);
-void     InsertMemTable (MemTable, Addr_t, Word_t);
-Word_t   SearchMemTable (MemTable, Word_t);
+void     InsertMemTable (MemTable, Addr_t, Byte_t);
+Byte_t   SearchMemTable (MemTable, Addr_t);
 
 
 /*!
@@ -118,4 +118,7 @@ uint32_t LoadSrec (FILE *, riscvEnv);
  */
 void    *checked_malloc (size_t);
 uint32_t ExtractBitField (uint32_t, uint32_t, uint32_t);
+uint32_t ExtractIField (uint32_t);
+uint32_t ExtractSBField (uint32_t);
+uint32_t ExtractUJField (uint32_t);
 uint32_t ExtendSign (uint32_t, uint32_t);

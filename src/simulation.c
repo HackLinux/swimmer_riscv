@@ -36,19 +36,21 @@ extern void (* const inst_exec_func[])(uint32_t, riscvEnv);
 /*!
  * step instruction
  */
-void StepSimulation (uint32_t stepCount, riscvEnv env)
+void StepSimulation (int32_t stepCount, riscvEnv env)
 {
-    for (; stepCount > 0; stepCount - 1) {
+    for (; stepCount > 0; stepCount--) {
         clearTraceInfo (env->trace);
+        env->current_pc = env->pc;
         Word_t    inst_hex = FetchMemory (env->pc, env);
         uint32_t  inst_idx = RISCV_DEC (inst_hex);
         if (inst_idx == -1) {
-            fprintf (env->dbgfp, "<Error: instruction is not decoded. %08x\n", inst_hex);
+            fprintf (env->dbgfp, "<Error: instruction is not decoded. [%08x]=%08x\n", env->pc, inst_hex);
             exit (EXIT_FAILURE);
         } else {
             inst_exec_func[inst_idx] (inst_hex, env);
 
-            fprintf (env->dbgfp, "[%08x] %08x : ", env->pc, inst_hex);
+            fprintf (env->dbgfp, "%10d : ", env->step);
+            fprintf (env->dbgfp, "[%08x] %08x : ", env->current_pc, inst_hex);
             char inst_string[31];
             PrintInst (inst_hex, inst_idx,
                        inst_string, 30,

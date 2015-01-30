@@ -453,7 +453,10 @@ void StoreMemory (Addr_t addr, Word_t data, Size_t size, riscvEnv env)
 
 void AdvanceStep (riscvEnv env)
 {
-    PCWrite (PCRead (env) + 4, env);
+    env->step++;
+    if (env->trace->isbranch == false) {
+        PCWrite (PCRead (env) + 4, env);
+    }
 }
 
 

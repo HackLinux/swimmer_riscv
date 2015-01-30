@@ -42,6 +42,7 @@ typedef struct __traceInfo *traceInfo;
 
 struct __traceInfo {
     uint32_t max;
+    bool     isbranch;
 
     traceType trace_type [TRACE_MAX];
 

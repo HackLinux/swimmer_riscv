@@ -97,6 +97,7 @@ int main (int argc, char *argv[])
 
     // simulation start
     FormatOperand ();
+    env->pc = 0x00000000;
     int count;
     for (count = 0; count < env->max_cycle; count++) {
         StepSimulation (1, env);

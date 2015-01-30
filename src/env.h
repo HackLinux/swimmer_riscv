@@ -67,8 +67,10 @@ struct __riscvEnv {
      * Architecture Implementations
      */
     Word_t     regs[32];     // general register
-    Word_t     pc;           // program counter
+    Addr_t     pc;           // program counter
     MemTable   memory;       // memory table
+
+    Addr_t     current_pc;   // PC before executing branch
 
     /*!
      * debug information

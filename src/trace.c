@@ -39,6 +39,7 @@ traceInfo TraceInfo (void)
 void clearTraceInfo (traceInfo trace)
 {
     trace->max = 0;
+    trace->isbranch = false;
 }
 
 
@@ -68,6 +69,10 @@ void RecordTraceGRegWrite (traceInfo trace, RegAddr_t reg, Word_t value)
         trace->trace_value[max] = value;
 
         trace->max++;
+    }
+
+    if (reg == REG_PC) {
+        trace->isbranch = true;
     }
 
     return;

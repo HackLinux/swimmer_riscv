@@ -28,4 +28,4 @@
 #include <stdint.h>
 #include "./env.h"
 
-void StepSimulation (uint32_t stepCount, riscvEnv env);
+void StepSimulation (int32_t stepCount, riscvEnv env);

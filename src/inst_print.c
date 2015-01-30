@@ -98,9 +98,14 @@ void PrintOperand (riscvEnv env)
     for (trace_count = 0; trace_count < env->trace->max; trace_count ++) {
         switch (env->trace->trace_type[trace_count]) {
         case trace_regwrite :
-            fprintf (env->dbgfp, "r%02d<=%08x ",
-                     env->trace->trace_addr[trace_count],
-                     env->trace->trace_value[trace_count]);
+            if (env->trace->trace_addr[trace_count] == REG_PC) {
+                fprintf (env->dbgfp, "pc<=%08x ",
+                         env->trace->trace_value[trace_count]);
+            } else {
+                fprintf (env->dbgfp, "r%02d<=%08x ",
+                         env->trace->trace_addr[trace_count],
+                         env->trace->trace_value[trace_count]);
+            }
             break;
         case trace_regread :
             fprintf (env->dbgfp, "r%02d=>%08x ",

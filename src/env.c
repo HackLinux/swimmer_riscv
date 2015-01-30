@@ -372,6 +372,17 @@ Word_t LoadMemory (Addr_t addr, Size_t size, riscvEnv env)
 }
 
 
+/*!
+ * Load Data from Memory
+ * it is different from LoadMemory, FetchMemory doesn't recorded to trace
+ */
+Word_t FetchMemory (Addr_t addr, riscvEnv env)
+{
+    Word_t res = LoadMemWord (addr, env);
+    return res;
+}
+
+
 void StoreMemory (Addr_t addr, Word_t data, Size_t size, riscvEnv env)
 {
     switch (size) {

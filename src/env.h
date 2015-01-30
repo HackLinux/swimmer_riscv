@@ -106,6 +106,7 @@ Word_t   GRegRead  (RegAddr_t, riscvEnv);
 void     GRegWrite (RegAddr_t, Word_t, riscvEnv);
 void     PCWrite (Addr_t, riscvEnv);
 Addr_t   PCRead (riscvEnv);
+Word_t   FetchMemory (Addr_t, riscvEnv);
 Word_t   LoadMemory  (Addr_t, Size_t, riscvEnv);
 void     StoreMemory (Addr_t, Word_t, Size_t, riscvEnv);
 void     AdvanceStep (riscvEnv);

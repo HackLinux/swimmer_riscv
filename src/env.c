@@ -264,9 +264,10 @@ static HWord_t LoadMemHWord (Addr_t addr, riscvEnv env)
         res = (byte1 << 8) + byte0;
         return res;
     } else {
-        fprintf (env->dbgfp, "<Address Misalign Error: HalfWord Addr = %08x>\n", addr);
+        fprintf (env->dbgfp, "<Error: Address Misalign: HalfWord Addr = %08x>\n", addr);
         return 0x0;
     }
+
 }
 
 
@@ -277,19 +278,19 @@ static HWord_t LoadMemHWord (Addr_t addr, riscvEnv env)
  */
 static Word_t LoadMemWord (Addr_t addr, riscvEnv env)
 {
-    Word_t byte3 = LoadMemByte (addr + 3, env);
-    Word_t byte2 = LoadMemByte (addr + 2, env);
-    Word_t byte1 = LoadMemByte (addr + 1, env);
-    Word_t byte0 = LoadMemByte (addr + 0, env);
-    Word_t res;
+    Word_t byte3 = LoadMemByte (addr + 3, env) & 0x00FFUL;
+    Word_t byte2 = LoadMemByte (addr + 2, env) & 0x00FFUL;
+    Word_t byte1 = LoadMemByte (addr + 1, env) & 0x00FFUL;
+    Word_t byte0 = LoadMemByte (addr + 0, env) & 0x00FFUL;
+    Word_t res = 0;
     if ((addr & 0x03) == 0) {
         res = (byte3 << 24) + (byte2 << 16)
             + (byte1 << 8) + byte0;
-        return res;
     } else {
-        fprintf (env->dbgfp, "<Address Misalign Error: Byte Addr = %08x>\n", addr);
-        return 0x0;
+        fprintf (env->dbgfp, "<Error: Address Misalign: Byte Addr = %08x>\n", addr);
     }
+
+    return res;
 }
 
 
@@ -387,7 +388,7 @@ void StoreMemory (Addr_t addr, Word_t data, Size_t size, riscvEnv env)
         RecordTraceMemWrite (env->trace, addr, data, size);
         break;
     default:
-        fprintf (env->dbgfp, "Internal Error: Illegal size of StoreMem is %d\n", size);
+        fprintf (env->dbgfp, "<Internal Error: Illegal size of StoreMem is %d>\n", size);
         exit (EXIT_FAILURE);
         break;
     }
@@ -440,7 +441,7 @@ uint32_t LoadSrec (FILE *fp, riscvEnv env)
             default : // illegal type
                 addr_len = 0;
                 load_data = false;
-                fprintf (stderr, "load_srec : type is illegal %d\n", type);
+                fprintf (stderr, "<Loading Srecord File : type is illegal %d>\n", type);
                 break;
             }
 

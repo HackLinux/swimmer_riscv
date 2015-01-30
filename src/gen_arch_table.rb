@@ -97,6 +97,18 @@ func_str = "Dec_RISCV"
 inst_name = Array[]
 temp_arch_table = Array[]
 
+
+##
+## === Architecture Operand Type Declaration ===
+##
+
+operand_type_array = Array[]
+operand_type_array[0] = ["h",  "operandTypeHex"]
+operand_type_array[1] = ["d",  "operandTypeDec"]
+operand_type_array[2] = ["sb", "operandTypeSB"]
+operand_type_array[3] = ["uj", "operandTypeUJ"]
+
+
 ##
 ##=== making instruction define list ===
 ##
@@ -242,21 +254,105 @@ inst_array_fp.close()
 ##
 ##=== generate instruction print table ===
 ##
-inst_print_h_fp = File.open('./inst_print.h', 'w')
+inst_mnemonic_c_fp = File.open('./inst_mnemonic.c', 'w')
 
-gen_header(inst_print_h_fp) # making header
+gen_header(inst_mnemonic_c_fp) # making header
 
-inst_print_h_fp.puts("#pragma once")
-inst_print_h_fp.puts("")
-inst_print_h_fp.puts("")
-inst_print_h_fp.puts("#include <stdint.h>")
-inst_print_h_fp.puts("#include \"./inst_list.h\"")
-inst_print_h_fp.puts("#include \"./dec_utils.h\"\n\n\n")
+inst_mnemonic_c_fp.puts("#pragma once")
+inst_mnemonic_c_fp.puts("")
+inst_mnemonic_c_fp.puts("")
+inst_mnemonic_c_fp.puts("#include \"./inst_list.h\"")
+inst_mnemonic_c_fp.puts("#include \"./dec_utils.h\"\n\n\n")
 
-inst_print_h_fp.printf("char *inst_strings[%d] = {\n", $arch_table.size + 1);
+inst_mnemonic_c_fp.printf("char *inst_strings[%d] = {\n", $arch_table.size);
 $arch_table.each_with_index {|inst_info, index|
-  inst_print_h_fp.printf("    \"%s\",\n", inst_info[ARCH::NAME]);
+  inst_string = inst_info[ARCH::NAME].gsub(/\w+\[\d+:\d+\]/, "@")
+  inst_mnemonic_c_fp.printf("    \"%s\"", inst_string)
+  if index != $arch_table.size - 1 then
+    inst_mnemonic_c_fp.puts(",\n")
+  end
 }
-inst_print_h_fp.puts("    NULL};\n");
+inst_mnemonic_c_fp.puts("};\n");
 
-inst_print_h_fp.close()
+inst_mnemonic_c_fp.close()
+
+
+##
+##=== generate operand table ===
+##
+inst_operand_h_fp = File.open('./inst_operand.h', 'w');
+
+gen_header(inst_operand_h_fp)  # making header
+
+inst_operand_h_fp.puts("#pragma once")
+inst_operand_h_fp.puts("")
+inst_operand_h_fp.puts("")
+inst_operand_h_fp.puts("#include <stdint.h>")
+inst_operand_h_fp.puts("#include \"./inst_list.h\"")
+inst_operand_h_fp.puts("#include \"./dec_utils.h\"\n\n\n")
+
+inst_operand_h_fp.puts("typedef enum {");
+operand_type_array.each_with_index {|operand_type, index|
+  inst_operand_h_fp.printf("      %s = %d", operand_type[1], index)
+  if index != operand_type_array.size - 1 then
+    inst_operand_h_fp.puts(", ")
+  end
+}
+inst_operand_h_fp.puts(" } operandType;")
+
+inst_operand_h_fp.puts("")
+
+inst_operand_h_fp.puts("#define MAX_OPERANDS 8\n\n");
+inst_operand_h_fp.puts("typedef struct {\n");
+inst_operand_h_fp.puts("    uint32_t size;\n");
+inst_operand_h_fp.puts("    operandType type_lst[MAX_OPERANDS];\n");
+inst_operand_h_fp.puts("    uint32_t msb_lst[MAX_OPERANDS];\n");
+inst_operand_h_fp.puts("    uint32_t lsb_lst[MAX_OPERANDS];\n");
+inst_operand_h_fp.puts("} operandList;\n");
+
+
+
+inst_operand_c_fp = File.open('./inst_operand.c', 'w');
+
+gen_header(inst_operand_c_fp)  # making header
+
+inst_operand_c_fp.puts("#pragma once")
+inst_operand_c_fp.puts("")
+inst_operand_c_fp.puts("")
+inst_operand_c_fp.puts("#include <stdint.h>")
+inst_operand_c_fp.puts("#include \"./inst_list.h\"")
+inst_operand_c_fp.puts("#include \"./inst_operand.h\"\n\n\n")
+
+inst_operand_c_fp.printf("operandList inst_operand[%d];\n\n\n", $arch_table.size)
+inst_operand_c_fp.printf("FormatOperand ()\n{\n");
+
+
+
+$arch_table.each_with_index {|inst_info, index|
+  operand = inst_info[ARCH::NAME].scan(/\w+\[\d+:\d+\]/)
+  inst_name = $arch_table[index][DEC::INST_NAME]
+  inst_operand_c_fp.printf("    // %s\n", inst_name)
+  inst_operand_c_fp.printf("    inst_operand[%s].size = %d;\n", inst_name, operand.size)
+  operand.each_with_index {|bit_field, op_index|
+    msb_lst = bit_field.match(/\w+\[(\d+):\d+\]/)
+    msb_bit = msb_lst[1]
+    msb_lst = bit_field.match(/\w+\[\d+:(\d+)\]/)
+    lsb_bit = msb_lst[1]
+    msb_lst = bit_field.match(/(\w+)\[\d+:\d+\]/)
+    type_bit = msb_lst[1]
+    operand_type_str = String
+    operand_type_array.each_with_index {|operand_type, index|
+      if operand_type[0] == type_bit then
+        operand_type_str = operand_type[1]
+        break
+      end
+    }
+    inst_operand_c_fp.printf("    inst_operand[%s].type_lst[%d] = %s;\n", inst_name, op_index, operand_type_str)
+    inst_operand_c_fp.printf("    inst_operand[%s].msb_lst[%d] = %d;\n", inst_name, op_index, msb_bit)
+    inst_operand_c_fp.printf("    inst_operand[%s].lsb_lst[%d] = %d;\n", inst_name, op_index, lsb_bit)
+  }
+}
+
+inst_operand_c_fp.printf("}\n")
+
+inst_operand_c_fp.close()

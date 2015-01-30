@@ -7,7 +7,10 @@ LIB_SRCS = env.c \
 	inst_call.c \
 	inst_decoder.c \
 	inst_riscv.c \
+	inst_operand.c \
 	simulation.c \
+	inst_print.c \
+	inst_mnemonic.c \
 	trace.c
 
 SRCS = swimmer_main.c
@@ -21,7 +24,7 @@ LIB_OBJS = $(libobjsrc:.c=.o)
 objsrc = $(addprefix $(OBJ_DIR), $(SRCS))
 OBJS = $(objsrc:.c=.o)
 
-CFLAGS = -Wall -O3 -I../include -g
+CFLAGS = -Wall -O3 -I../include -g -lm
 
 CC = gcc
 AR = ar

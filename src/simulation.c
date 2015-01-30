@@ -44,9 +44,15 @@ void StepSimulation (uint32_t stepCount, riscvEnv env)
         uint32_t  inst_idx = RISCV_DEC (inst_hex);
         if (inst_idx == -1) {
             fprintf (env->dbgfp, "<Error: instruction is not decoded. %08x\n", inst_hex);
+        } else {
+            inst_exec_func[inst_idx] (inst_hex, env);
+
+            char inst_string[31];
+            PrintInst (inst_hex, inst_idx,
+                       inst_string, 30,
+                       env);
+            fprintf (env->dbgfp, " %30s\n", inst_string[inst_idx]);
         }
-        inst_exec_func[inst_idx] (inst_hex, env);
-        fprintf (env->dbgfp, " %30s\n", inst_strings[inst_idx]);
         AdvanceStep (env);
     }
     return;

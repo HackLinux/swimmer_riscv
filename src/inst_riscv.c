@@ -55,7 +55,7 @@ void RISCV_INST_AUIPC (uint32_t inst_hex, riscvEnv env)
 void RISCV_INST_JAL (uint32_t inst_hex, riscvEnv env)
 {
     RegAddr_t rd_addr = ExtractRDField (inst_hex);
-    Word_t    imm     = ExtractBitField (inst_hex, 31, 12);
+    Word_t    imm     = ExtractUJField (inst_hex);
     Addr_t    pc_addr = PCRead (env);
     Word_t    res_pc  = imm + pc_addr;
 
@@ -68,7 +68,7 @@ void RISCV_INST_JALR (uint32_t inst_hex, riscvEnv env)
 {
     RegAddr_t rs1_addr = ExtractR1Field (inst_hex);
     RegAddr_t rd_addr = ExtractRDField (inst_hex);
-    Word_t    imm      = ExtractBitField (inst_hex, 31, 20);
+    Word_t    imm      = ExtractIField (inst_hex);
     Addr_t    pc_addr  = PCRead (env);
     Word_t    rs1_val  = GRegRead (rs1_addr, env);
     Word_t    res_pc   = rs1_val + imm;
@@ -85,7 +85,7 @@ void RISCV_INST_BEQ (uint32_t inst_hex, riscvEnv env)
 
     Word_t  rs1_val  = GRegRead (rs1_addr, env);
     Word_t  rs2_val  = GRegRead (rs2_addr, env);
-    Word_t  imm      = (ExtractBitField (inst_hex, 31, 25) << 5) + ExtractBitField (inst_hex, 11, 7);
+    Word_t  imm      = ExtractSBField (inst_hex);
 
     bool taken = (rs1_val == rs2_val);
     if (taken) {
@@ -102,7 +102,7 @@ void RISCV_INST_BNE (uint32_t inst_hex, riscvEnv env)
 
     Word_t  rs1_val  = GRegRead (rs1_addr, env);
     Word_t  rs2_val  = GRegRead (rs2_addr, env);
-    Word_t  imm      = (ExtractBitField (inst_hex, 31, 25) << 5) + ExtractBitField (inst_hex, 11, 7);
+    Word_t  imm      = ExtractSBField (inst_hex);
 
     bool taken = (rs1_val != rs2_val);
     if (taken) {
@@ -119,7 +119,7 @@ void RISCV_INST_BLT (uint32_t inst_hex, riscvEnv env)
 
     Word_t  rs1_val  = GRegRead (rs1_addr, env);
     Word_t  rs2_val  = GRegRead (rs2_addr, env);
-    Word_t  imm      = (ExtractBitField (inst_hex, 31, 25) << 5) + ExtractBitField (inst_hex, 11, 7);
+    Word_t  imm      = ExtractSBField (inst_hex);
 
     bool taken = (rs1_val < rs2_val);
     if (taken) {
@@ -136,7 +136,7 @@ void RISCV_INST_BGE (uint32_t inst_hex, riscvEnv env)
 
     Word_t  rs1_val  = GRegRead (rs1_addr, env);
     Word_t  rs2_val  = GRegRead (rs2_addr, env);
-    Word_t  imm      = (ExtractBitField (inst_hex, 31, 25) << 5) + ExtractBitField (inst_hex, 11, 7);
+    Word_t  imm      = ExtractSBField (inst_hex);
 
     bool taken = (rs1_val >= rs2_val);
     if (taken) {
@@ -153,9 +153,9 @@ void RISCV_INST_BLTU (uint32_t inst_hex, riscvEnv env)
 
     UWord_t rs1_val  = GRegRead (rs1_addr, env);
     UWord_t rs2_val  = GRegRead (rs2_addr, env);
-    Word_t  imm      = (ExtractBitField (inst_hex, 31, 25) << 5) + ExtractBitField (inst_hex, 11, 7);
+    Word_t  imm      = ExtractSBField (inst_hex);
 
-    bool taken = (rs1_val <= rs2_val);
+    bool taken = (rs1_val < rs2_val);
     if (taken) {
         Word_t res_pc = PCRead (env) + imm;
         PCWrite (res_pc, env);
@@ -170,7 +170,7 @@ void RISCV_INST_BGEU (uint32_t inst_hex, riscvEnv env)
 
     UWord_t rs1_val  = GRegRead (rs1_addr, env);
     UWord_t rs2_val  = GRegRead (rs2_addr, env);
-    Word_t  imm      = (ExtractBitField (inst_hex, 31, 25) << 5) + ExtractBitField (inst_hex, 11, 7);
+    Word_t  imm      = ExtractSBField (inst_hex);
 
     bool taken = (rs1_val >= rs2_val);
     if (taken) {
@@ -186,7 +186,7 @@ void RISCV_INST_LB (uint32_t inst_hex, riscvEnv env)
     RegAddr_t rs1_addr = ExtractR1Field (inst_hex);
 
     UWord_t rs1_val  = GRegRead (rs1_addr, env);
-    Word_t  imm      = ExtractBitField (inst_hex, 31, 20);
+    Word_t  imm      = ExtractIField (inst_hex);
     Addr_t  mem_addr = rs1_val + imm;
 
     Word_t res       = ExtendSign (LoadMemory (mem_addr, Size_Byte, env) & 0x000000ff, 7);
@@ -200,7 +200,7 @@ void RISCV_INST_LH (uint32_t inst_hex, riscvEnv env)
     RegAddr_t rs1_addr = ExtractR1Field (inst_hex);
 
     UWord_t rs1_val  = GRegRead (rs1_addr, env);
-    Word_t  imm      = ExtractBitField (inst_hex, 31, 20);
+    Word_t  imm      = ExtractIField (inst_hex);
     Addr_t  mem_addr = rs1_val + imm;
 
     Word_t res       = ExtendSign (LoadMemory (mem_addr, Size_HWord, env) & 0x0000ffff, 15);
@@ -214,7 +214,7 @@ void RISCV_INST_LW (uint32_t inst_hex, riscvEnv env)
     RegAddr_t rs1_addr = ExtractR1Field (inst_hex);
 
     UWord_t rs1_val  = GRegRead (rs1_addr, env);
-    Word_t  imm      = ExtractBitField (inst_hex, 31, 20);
+    Word_t  imm      = ExtractIField (inst_hex);
     Addr_t  mem_addr = rs1_val + imm;
 
     Word_t res       = LoadMemory (mem_addr, Size_Word, env);
@@ -228,7 +228,7 @@ void RISCV_INST_LBU (uint32_t inst_hex, riscvEnv env)
     RegAddr_t rs1_addr = ExtractR1Field (inst_hex);
 
     UWord_t rs1_val  = GRegRead (rs1_addr, env);
-    Word_t  imm      = ExtractBitField (inst_hex, 31, 20);
+    Word_t  imm      = ExtractIField (inst_hex);
     Addr_t  mem_addr = rs1_val + imm;
 
     Word_t res       = LoadMemory (mem_addr, Size_Byte, env) & 0x000000ff;
@@ -242,7 +242,7 @@ void RISCV_INST_LHU (uint32_t inst_hex, riscvEnv env)
     RegAddr_t rs1_addr = ExtractR1Field (inst_hex);
 
     UWord_t rs1_val  = GRegRead (rs1_addr, env);
-    Word_t  imm      = ExtractBitField (inst_hex, 31, 20);
+    Word_t  imm      = ExtractIField (inst_hex);
     Addr_t  mem_addr = rs1_val + imm;
 
     Word_t res       = LoadMemory (mem_addr, Size_HWord, env) & 0x0000ffff;
@@ -257,7 +257,7 @@ void RISCV_INST_SB (uint32_t inst_hex, riscvEnv env)
 
     UWord_t rs1_val  = GRegRead (rs1_addr, env);
     UWord_t rs2_val  = GRegRead (rs2_addr, env);
-    Word_t  imm      = ExtractBitField (inst_hex, 31, 20);
+    Word_t  imm      = ExtractSBField (inst_hex);
 
     Addr_t  mem_addr = rs1_val + imm;
 
@@ -272,7 +272,7 @@ void RISCV_INST_SH (uint32_t inst_hex, riscvEnv env)
 
     UWord_t rs1_val  = GRegRead (rs1_addr, env);
     UWord_t rs2_val  = GRegRead (rs2_addr, env);
-    Word_t  imm      = ExtractBitField (inst_hex, 31, 20);
+    Word_t  imm      = ExtractSBField (inst_hex);
 
     Addr_t  mem_addr = rs1_val + imm;
 
@@ -287,7 +287,7 @@ void RISCV_INST_SW (uint32_t inst_hex, riscvEnv env)
 
     UWord_t rs1_val  = GRegRead (rs1_addr, env);
     UWord_t rs2_val  = GRegRead (rs2_addr, env);
-    Word_t  imm      = ExtractBitField (inst_hex, 31, 20);
+    Word_t  imm      = ExtractSBField (inst_hex);
 
     Addr_t  mem_addr = rs1_val + imm;
 
@@ -301,7 +301,7 @@ void RISCV_INST_ADDI (uint32_t inst_hex, riscvEnv env)
     RegAddr_t rd_addr  = ExtractRDField (inst_hex);
 
     Word_t  rs1_val  = GRegRead (rs1_addr, env);
-    Word_t  imm      = ExtractBitField (inst_hex, 31, 20);
+    Word_t  imm      = ExtractIField (inst_hex);
 
     Word_t  res      = rs1_val + imm;
     GRegWrite (rd_addr, res, env);
@@ -326,7 +326,7 @@ void RISCV_INST_SLTIU (uint32_t inst_hex, riscvEnv env)
     RegAddr_t rd_addr  = ExtractRDField (inst_hex);
 
     Word_t  rs1_val  = GRegRead (rs1_addr, env);
-    Word_t  imm      = ExtractBitField (inst_hex, 31, 20);
+    Word_t  imm      = ExtractIField (inst_hex);
     Word_t  res      = (rs1_val < imm) ? 0x1 : 0x0;
     GRegWrite (rd_addr, res, env);
 }
@@ -338,7 +338,7 @@ void RISCV_INST_XORI (uint32_t inst_hex, riscvEnv env)
     RegAddr_t rd_addr  = ExtractRDField (inst_hex);
 
     Word_t  rs1_val  = GRegRead (rs1_addr, env);
-    Word_t  imm      = ExtractBitField (inst_hex, 31, 20);
+    Word_t  imm      = ExtractIField (inst_hex);
     Word_t  res      = rs1_val ^ imm;
     GRegWrite (rd_addr, res, env);
 }
@@ -350,7 +350,7 @@ void RISCV_INST_ORI (uint32_t inst_hex, riscvEnv env)
     RegAddr_t rd_addr  = ExtractRDField (inst_hex);
 
     Word_t  rs1_val  = GRegRead (rs1_addr, env);
-    Word_t  imm      = ExtractBitField (inst_hex, 31, 20);
+    Word_t  imm      = ExtractIField (inst_hex);
     Word_t  res      = rs1_val | imm;
     GRegWrite (rd_addr, res, env);
 }
@@ -362,7 +362,7 @@ void RISCV_INST_ANDI (uint32_t inst_hex, riscvEnv env)
     RegAddr_t rd_addr  = ExtractRDField (inst_hex);
 
     Word_t  rs1_val  = GRegRead (rs1_addr, env);
-    Word_t  imm      = ExtractBitField (inst_hex, 31, 20);
+    Word_t  imm      = ExtractIField (inst_hex);
     Word_t  res      = rs1_val & imm;
     GRegWrite (rd_addr, res, env);
 }
@@ -438,7 +438,7 @@ void RISCV_INST_SLL (uint32_t inst_hex, riscvEnv env)
 
     Word_t  rs1_val  = GRegRead (rs1_addr, env);
     Word_t  rs2_val  = GRegRead (rs2_addr, env);
-    Word_t  res      = rs1_val >> rs2_val;
+    Word_t  res      = rs1_val << rs2_val;
     GRegWrite (rd_addr, res, env);
 }
 
@@ -490,7 +490,7 @@ void RISCV_INST_SRL (uint32_t inst_hex, riscvEnv env)
 
     UWord_t rs1_val  = GRegRead (rs1_addr, env);
     UWord_t rs2_val  = GRegRead (rs2_addr, env);
-    Word_t  res      = rs1_val << rs2_val;
+    Word_t  res      = rs1_val >> rs2_val;
     GRegWrite (rd_addr, res, env);
 }
 
@@ -554,12 +554,90 @@ void RISCV_INST_RDTIME (uint32_t inst_hex, riscvEnv env) {}
 void RISCV_INST_RDTIMEH (uint32_t inst_hex, riscvEnv env) {}
 void RISCV_INST_RDINSTRET (uint32_t inst_hex, riscvEnv env) {}
 void RISCV_INST_RDINSTRETH (uint32_t inst_hex, riscvEnv env) {}
-void RISCV_INST_MUL (uint32_t inst_hex, riscvEnv env) {}
-void RISCV_INST_MULH (uint32_t inst_hex, riscvEnv env) {}
-void RISCV_INST_MULHSU (uint32_t inst_hex, riscvEnv env) {}
-void RISCV_INST_MULHU (uint32_t inst_hex, riscvEnv env) {}
-void RISCV_INST_DIV (uint32_t inst_hex, riscvEnv env) {}
-void RISCV_INST_DIVU (uint32_t inst_hex, riscvEnv env) {}
+void RISCV_INST_MUL (uint32_t inst_hex, riscvEnv env)
+{
+    RegAddr_t rs1_addr = ExtractR1Field (inst_hex);
+    RegAddr_t rs2_addr = ExtractR2Field (inst_hex);
+    RegAddr_t rd_addr  = ExtractRDField (inst_hex);
+
+    Word_t rs1_val  = GRegRead (rs1_addr, env);
+    Word_t rs2_val  = GRegRead (rs2_addr, env);
+    Word_t res      = rs1_val * rs2_val;
+    GRegWrite (rd_addr, res, env);
+}
+
+
+void RISCV_INST_MULH (uint32_t inst_hex, riscvEnv env)
+{
+    RegAddr_t rs1_addr = ExtractR1Field (inst_hex);
+    RegAddr_t rs2_addr = ExtractR2Field (inst_hex);
+    RegAddr_t rd_addr  = ExtractRDField (inst_hex);
+
+    Word_t  rs1_val  = GRegRead (rs1_addr, env);
+    Word_t  rs2_val  = GRegRead (rs2_addr, env);
+    DWord_t res64    = (DWord_t)rs1_val * (DWord_t)rs2_val;
+    Word_t  res      = (res64 >> 32) & 0x0ffffffffUL;
+    GRegWrite (rd_addr, res, env);
+}
+
+
+void RISCV_INST_MULHSU (uint32_t inst_hex, riscvEnv env)
+{
+    RegAddr_t rs1_addr = ExtractR1Field (inst_hex);
+    RegAddr_t rs2_addr = ExtractR2Field (inst_hex);
+    RegAddr_t rd_addr  = ExtractRDField (inst_hex);
+
+    Word_t  rs1_val = GRegRead (rs1_addr, env);
+    UWord_t rs2_val = GRegRead (rs2_addr, env);
+    DWord_t res64   = (DWord_t)rs1_val * (DWord_t)rs2_val;
+    Word_t  res     = (res64 >> 32) & 0x0ffffffffUL;
+    GRegWrite (rd_addr, res, env);
+}
+
+
+void RISCV_INST_MULHU (uint32_t inst_hex, riscvEnv env)
+{
+    RegAddr_t rs1_addr = ExtractR1Field (inst_hex);
+    RegAddr_t rs2_addr = ExtractR2Field (inst_hex);
+    RegAddr_t rd_addr  = ExtractRDField (inst_hex);
+
+    UWord_t  rs1_val = GRegRead (rs1_addr, env);
+    UWord_t  rs2_val = GRegRead (rs2_addr, env);
+    UDWord_t res64   = (DWord_t)rs1_val * (DWord_t)rs2_val;
+    UWord_t  res     = (res64 >> 32) & 0x0ffffffffUL;
+    GRegWrite (rd_addr, res, env);
+}
+
+
+void RISCV_INST_DIV (uint32_t inst_hex, riscvEnv env)
+{
+    RegAddr_t rs1_addr = ExtractR1Field (inst_hex);
+    RegAddr_t rs2_addr = ExtractR2Field (inst_hex);
+    RegAddr_t rd_addr  = ExtractRDField (inst_hex);
+
+    Word_t rs1_val  = GRegRead (rs1_addr, env);
+    Word_t rs2_val  = GRegRead (rs2_addr, env);
+    Word_t  res      = rs1_val / rs2_val;
+    GRegWrite (rd_addr, res, env);
+}
+
+
+void RISCV_INST_DIVU (uint32_t inst_hex, riscvEnv env)
+{
+    RegAddr_t rs1_addr = ExtractR1Field (inst_hex);
+    RegAddr_t rs2_addr = ExtractR2Field (inst_hex);
+    RegAddr_t rd_addr  = ExtractRDField (inst_hex);
+
+    UWord_t rs1_val  = GRegRead (rs1_addr, env);
+    UWord_t rs2_val  = GRegRead (rs2_addr, env);
+    if (rs2_val == 0) {
+        return;
+    }
+    UWord_t  res     = rs1_val / rs2_val;
+    GRegWrite (rd_addr, res, env);
+}
+
+
 void RISCV_INST_REM (uint32_t inst_hex, riscvEnv env) {}
 void RISCV_INST_REMU (uint32_t inst_hex, riscvEnv env) {}
 void RISCV_INST_LR_W (uint32_t inst_hex, riscvEnv env) {}

@@ -63,6 +63,45 @@ uint32_t ExtractBitField (uint32_t hex, uint32_t left, uint32_t right)
 }
 
 
+uint32_t ExtractIField (uint32_t hex)
+{
+    uint32_t uimm32 = ExtractBitField (hex, 31, 20);
+    return ExtendSign (uimm32, 11);
+}
+
+
+uint32_t ExtractSBField (uint32_t hex)
+{
+    uint32_t i07_07 = ExtractBitField (hex,  7,  7) & 0x01UL;
+    uint32_t i11_08 = ExtractBitField (hex, 11,  8) & 0x0fUL;
+    uint32_t i30_25 = ExtractBitField (hex, 30, 25) & 0x03fUL;
+    uint32_t i31_31 = ExtractBitField (hex, 31, 31) & 0x01UL;
+
+    uint32_t u_res = (i31_31 << 12) |
+                     (i07_07 << 11) |
+                     (i30_25 <<  5) |
+                     (i11_08 <<  1);
+    return ExtendSign (u_res, 12);
+}
+
+
+uint32_t ExtractUJField (uint32_t hex)
+{
+    uint32_t i24_21 = ExtractBitField (hex, 24, 21) & 0x0fUL;
+    uint32_t i30_25 = ExtractBitField (hex, 30, 25) & 0x03fUL;
+    uint32_t i20_20 = ExtractBitField (hex, 20, 20) & 0x01UL;
+    uint32_t i19_12 = ExtractBitField (hex, 19, 12) & 0x0ffUL;
+    uint32_t i31_31 = ExtractBitField (hex, 31, 31) & 0x01UL;
+
+    uint32_t u_res = (i31_31 << 20) |
+                     (i19_12 << 12) |
+                     (i20_20 << 11) |
+                     (i30_25 <<  5) |
+                     (i24_21 <<  1);
+    return ExtendSign (u_res, 20);
+}
+
+
 /*!
  * sign extension
  */

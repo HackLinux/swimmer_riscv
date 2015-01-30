@@ -175,7 +175,7 @@ until temp_arch_table.size == 0
 
       if key_table.size != 1 then
         if not dec_table.include?(func_str) then
-          dec_table.push (func_str)
+          dec_table.push(func_str)
           inst_decoder_c_fp.printf("    if (Extract%sField (inst_hex) == 0x%02x)\n", key_table[0], inst_info[key_idx].to_i(2))
           inst_decoder_c_fp.printf("        return %s (inst_hex);\n", func_str)
         end
@@ -253,7 +253,7 @@ inst_print_h_fp.puts("#include <stdint.h>")
 inst_print_h_fp.puts("#include \"./inst_list.h\"")
 inst_print_h_fp.puts("#include \"./dec_utils.h\"\n\n\n")
 
-inst_print_h_fp.printf("char inst_strings[%d] = {\n", $arch_table.size + 1);
+inst_print_h_fp.printf("char *inst_strings[%d] = {\n", $arch_table.size + 1);
 $arch_table.each_with_index {|inst_info, index|
   inst_print_h_fp.printf("    \"%s\",\n", inst_info[ARCH::NAME]);
 }

@@ -32,8 +32,10 @@
 #include <stdlib.h>
 
 typedef int32_t  Word_t;
-typedef int16_t  HWord_t;
-typedef int8_t   Byte_t;
+typedef uint16_t HWord_t;
+typedef uint8_t  Byte_t;
+typedef int64_t  DWord_t;
+typedef uint64_t UDWord_t;
 typedef uint32_t UWord_t;
 typedef uint32_t Addr_t;
 typedef uint8_t  RegAddr_t;

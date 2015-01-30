@@ -251,7 +251,9 @@ Word_t GRegRead (RegAddr_t reg, riscvEnv env)
 void GRegWrite (RegAddr_t reg, Word_t data, riscvEnv env)
 {
     RecordTraceGRegWrite (env->trace, reg, data);
-    env->regs [reg] = data;
+    if (reg != 0x00) {
+        env->regs [reg] = data;
+    }
 }
 
 

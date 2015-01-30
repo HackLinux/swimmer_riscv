@@ -107,21 +107,25 @@ void PrintOperand (riscvEnv env)
                          env->trace->trace_value[trace_count]);
             }
             break;
+#ifdef NEVER
         case trace_regread :
             fprintf (env->dbgfp, "r%02d=>%08x ",
                      env->trace->trace_addr[trace_count],
                      env->trace->trace_value[trace_count]);
             break;
+#endif // NEVER
         case trace_memwrite :
             fprintf (env->dbgfp, "(%08x)<=%08x ",
                      env->trace->trace_addr[trace_count],
                      env->trace->trace_value[trace_count]);
             break;
+#ifdef NEVER
         case trace_memread :
             fprintf (env->dbgfp, "(%08x)=>%08x ",
                      env->trace->trace_addr[trace_count],
                      env->trace->trace_value[trace_count]);
             break;
+#endif // NEVER
         }
     }
 }

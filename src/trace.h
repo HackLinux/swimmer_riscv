@@ -32,23 +32,22 @@
 
 #define TRACE_MAX 32
 
-#define TRACE_REGWRITE   0
-#define TRACE_REGREAD    1
-#define TRACE_MEMWRITE1 10
-#define TRACE_MEMREAD1  11
-#define TRACE_MEMWRITE2 12
-#define TRACE_MEMREAD2  13
-#define TRACE_MEMWRITE4 14
-#define TRACE_MEMREAD4  15
+typedef enum {trace_regwrite,
+              trace_regread,
+              trace_memread,
+              trace_memwrite} traceType;
 
 
 typedef struct __traceInfo *traceInfo;
 
 struct __traceInfo {
     uint32_t max;
-    RegAddr_t trace_reg  [TRACE_MAX];
+
+    traceType trace_type [TRACE_MAX];
+
+    /* for Register Read/Write */
+    Addr_t    trace_addr [TRACE_MAX];
     Word_t    trace_value[TRACE_MAX];
-    uint32_t  trace_rw   [TRACE_MAX];
 };
 
 

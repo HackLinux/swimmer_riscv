@@ -26,6 +26,7 @@ n *     ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IM
  */
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <math.h>
 #include "./inst_operand.h"
 #include "./inst_print.h"
@@ -33,24 +34,25 @@ n *     ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IM
 extern char *inst_strings [];
 extern operandList inst_operand[];
 
-void PrintInst (uint32_t inst_index, uint32_t inst_hex,
+void PrintInst (uint32_t inst_hex, uint32_t inst_idx,
                 char *str_out, const uint32_t length,
                 riscvEnv env)
 {
     char *str_head = str_out;
-    char *inst_str = inst_strings[inst_index];
+    char *inst_str = inst_strings[inst_idx];
     uint32_t replace_idx = 0;
     while (inst_str[0] != '\0') {
-        if (replace_idx > inst_operand[inst_index].size) {
+        if (replace_idx > inst_operand[inst_idx].size) {
             fprintf (stderr, "<Internal Error: instruction format index exceeded\n");
+            exit (EXIT_FAILURE);
         }
         if (inst_str[0] == '@') {
             int i;
-            uint32_t msb_bit = inst_operand[inst_index].msb_lst[replace_idx];
-            uint32_t lsb_bit = inst_operand[inst_index].lsb_lst[replace_idx];
-            uint32_t type    = inst_operand[inst_index].type_lst[replace_idx];
+            uint32_t msb_bit = inst_operand[inst_idx].msb_lst[replace_idx];
+            uint32_t lsb_bit = inst_operand[inst_idx].lsb_lst[replace_idx];
+            uint32_t type    = inst_operand[inst_idx].type_lst[replace_idx];
             uint32_t length_field = msb_bit - lsb_bit + 1;
-            length_field = length_field % 4 == 0 ? length_field : length_field + 1;
+            length_field = length_field % 4 == 0 ? (length_field / 4) : (length_field / 4 + 1);
             uint32_t operand_bit =  ExtractBitField (inst_hex, msb_bit, lsb_bit);
             uint8_t disp_array[8];
             uint32_t divide_base;
@@ -73,7 +75,7 @@ void PrintInst (uint32_t inst_index, uint32_t inst_hex,
 
             for (i = length_field - 1; i >= 0; i--) {
                 if (divide_base == 16) {
-                    str_head[0] = (disp_array[i] < 10) ? disp_array[i] + 0x30 : disp_array[i] - 0x58;
+                    str_head[0] = (disp_array[i] < 10) ? disp_array[i] + 0x30 : disp_array[i] + 0x57;
                 } else if (divide_base == 10) {
                     str_head[0] = disp_array[i] + 0x30;
                 }
@@ -86,5 +88,35 @@ void PrintInst (uint32_t inst_index, uint32_t inst_hex,
         }
         inst_str++;
     }
-    str_head = '\0';
+    str_head[0] = '\0'; str_head ++;
+}
+
+
+void PrintOperand (riscvEnv env)
+{
+    uint32_t trace_count;
+    for (trace_count = 0; trace_count < env->trace->max; trace_count ++) {
+        switch (env->trace->trace_type[trace_count]) {
+        case trace_regwrite :
+            fprintf (env->dbgfp, "r%02d<=%08x ",
+                     env->trace->trace_addr[trace_count],
+                     env->trace->trace_value[trace_count]);
+            break;
+        case trace_regread :
+            fprintf (env->dbgfp, "r%02d=>%08x ",
+                     env->trace->trace_addr[trace_count],
+                     env->trace->trace_value[trace_count]);
+            break;
+        case trace_memwrite :
+            fprintf (env->dbgfp, "(%08x)<=%08x ",
+                     env->trace->trace_addr[trace_count],
+                     env->trace->trace_value[trace_count]);
+            break;
+        case trace_memread :
+            fprintf (env->dbgfp, "(%08x)=>%08x ",
+                     env->trace->trace_addr[trace_count],
+                     env->trace->trace_value[trace_count]);
+            break;
+        }
+    }
 }

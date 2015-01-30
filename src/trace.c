@@ -46,9 +46,10 @@ void RecordTraceGRegRead  (traceInfo trace, RegAddr_t reg, Word_t value)
 {
     uint32_t max = trace->max;
     if (max < TRACE_MAX) {
-        trace->trace_reg  [max] = reg;
+        trace->trace_type [max] = trace_regread;
+
+        trace->trace_addr [max] = reg;
         trace->trace_value[max] = value;
-        trace->trace_rw   [max] = TRACE_REGREAD;
 
         trace->max++;
     }
@@ -61,9 +62,10 @@ void RecordTraceGRegWrite (traceInfo trace, RegAddr_t reg, Word_t value)
 {
     uint32_t max = trace->max;
     if (max < TRACE_MAX) {
-        trace->trace_reg  [max] = reg;
+        trace->trace_type [max] = trace_regwrite;
+
+        trace->trace_addr [max] = reg;
         trace->trace_value[max] = value;
-        trace->trace_rw   [max] = TRACE_REGWRITE;
 
         trace->max++;
     }
@@ -76,9 +78,10 @@ void RecordTraceMemRead (traceInfo trace, Addr_t addr, Word_t value, Size_t size
 {
     uint32_t max = trace->max;
     if (max < TRACE_MAX) {
-        trace->trace_reg  [max] = addr;
+        trace->trace_type [max] = trace_memread;
+
+        trace->trace_addr [max] = addr;
         trace->trace_value[max] = value;
-        trace->trace_rw   [max] = TRACE_MEMREAD1;
 
         trace->max++;
     }
@@ -91,9 +94,10 @@ void RecordTraceMemWrite (traceInfo trace, Addr_t addr, Word_t value, Size_t siz
 {
     uint32_t max = trace->max;
     if (max < TRACE_MAX) {
-        trace->trace_reg  [max] = addr;
+        trace->trace_type [max] = trace_memwrite;
+
+        trace->trace_addr [max] = addr;
         trace->trace_value[max] = value;
-        trace->trace_rw   [max] = TRACE_MEMWRITE1;
 
         trace->max++;
     }

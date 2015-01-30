@@ -26,6 +26,7 @@
  */
 
 #include <stdint.h>
+#include <stdlib.h>
 #include "./inst_decoder.h"
 #include "./env.h"
 #include "./inst_print.h"
@@ -39,20 +40,23 @@ void StepSimulation (uint32_t stepCount, riscvEnv env)
 {
     for (; stepCount > 0; stepCount - 1) {
         clearTraceInfo (env->trace);
-        Word_t    inst_hex = LoadMemory (PCRead (env), Size_Word, env);
-        fprintf (env->dbgfp, "%08x : ", inst_hex);
+        Word_t    inst_hex = FetchMemory (env->pc, env);
         uint32_t  inst_idx = RISCV_DEC (inst_hex);
         if (inst_idx == -1) {
             fprintf (env->dbgfp, "<Error: instruction is not decoded. %08x\n", inst_hex);
+            exit (EXIT_FAILURE);
         } else {
             inst_exec_func[inst_idx] (inst_hex, env);
 
+            fprintf (env->dbgfp, "[%08x] %08x : ", env->pc, inst_hex);
             char inst_string[31];
             PrintInst (inst_hex, inst_idx,
                        inst_string, 30,
                        env);
-            fprintf (env->dbgfp, " %30s\n", inst_string[inst_idx]);
+            fprintf (env->dbgfp, "%-30s  ", inst_string);
+            PrintOperand (env);
         }
+        fprintf (env->dbgfp, "\n");
         AdvanceStep (env);
     }
     return;

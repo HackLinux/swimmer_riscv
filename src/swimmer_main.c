@@ -96,6 +96,7 @@ int main (int argc, char *argv[])
     LoadSrec (hexfp, env);
 
     // simulation start
+    FormatOperand ();
     int count;
     for (count = 0; count < env->max_cycle; count++) {
         StepSimulation (1, env);

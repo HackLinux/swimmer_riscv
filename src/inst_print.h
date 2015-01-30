@@ -29,6 +29,6 @@
 
 
 #include <stdint.h>
-void PrintInst (uint32_t inst_index, uint32_t inst_hex,
+void PrintInst (uint32_t inst_hex, uint32_t inst_idx,
                 char *str_out, const uint32_t length,
                 riscvEnv env);
